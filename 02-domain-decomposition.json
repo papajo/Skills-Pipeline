@@ -1,0 +1,131 @@
+{
+  "skill": "domain-decomposition",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 2,
+  "title": "Domain Decomposition",
+  "description": "Break the universal portfolio + blog template into bounded domains, each with its own data model, responsibilities, and interface contracts. This prevents the portfolio and blog concerns from bleeding into each other and keeps the template extensible.",
+  "trigger": "/domain-decomposition",
+  "prerequisite": "01-clarify-requirements must be complete",
+  "domains": [
+    {
+      "name": "Identity Domain",
+      "responsibility": "Owns all owner-level data: name, bio, avatar, social links, CV/resume, contact details. This is the single source of truth that all other domains read from.",
+      "data_model": {
+        "Owner": {
+          "name": "string",
+          "tagline": "string",
+          "bio": "string (supports Markdown)",
+          "avatar": "ImageAsset",
+          "socialLinks": "SocialLink[]",
+          "resumeUrl": "string | null",
+          "contactEmail": "string | null"
+        }
+      },
+      "config_file": "config/identity.ts",
+      "consumed_by": ["Layout", "HomePage", "AboutPage", "ContactPage", "SEO", "OGImage"]
+    },
+    {
+      "name": "Portfolio Domain",
+      "responsibility": "Owns work items — projects, case studies, artworks, publications. Supports rich media (images, video embeds, PDF links, GitHub links). Schema is flexible enough for technical and non-technical personas.",
+      "data_model": {
+        "WorkItem": {
+          "slug": "string",
+          "title": "string",
+          "summary": "string",
+          "tags": "string[]",
+          "category": "string",
+          "coverImage": "ImageAsset | null",
+          "media": "MediaItem[]",
+          "externalUrl": "string | null",
+          "repoUrl": "string | null",
+          "publishedAt": "Date",
+          "featured": "boolean",
+          "visibility": "public | private | unlisted"
+        }
+      },
+      "config_file": "content/work/",
+      "consumed_by": ["WorkPage", "WorkDetailPage", "HomePage (featured)", "SEO", "Sitemap"]
+    },
+    {
+      "name": "Blog Domain",
+      "responsibility": "Owns all written content — articles, notes, tutorials, image galleries. MDX-first authoring. Supports code highlighting, math rendering, and embedded components. Persona-agnostic: a post can be a dev tutorial or a travel essay.",
+      "data_model": {
+        "Post": {
+          "slug": "string",
+          "title": "string",
+          "description": "string",
+          "tags": "string[]",
+          "coverImage": "ImageAsset | null",
+          "publishedAt": "Date",
+          "updatedAt": "Date | null",
+          "readingTime": "number (auto-computed)",
+          "draft": "boolean",
+          "body": "MDX"
+        }
+      },
+      "config_file": "content/blog/",
+      "consumed_by": ["BlogPage", "PostPage", "RSS", "Sitemap", "SEO"]
+    },
+    {
+      "name": "Theme & Customisation Domain",
+      "responsibility": "Owns visual identity — colour palettes, typography, spacing scale, layout variants. Exposed as a single config file so non-technical users can customise without touching component code.",
+      "data_model": {
+        "ThemeConfig": {
+          "colorScheme": "light | dark | system",
+          "primaryColor": "string (CSS custom property seed)",
+          "fontHeading": "string (Google Font name or local)",
+          "fontBody": "string",
+          "layoutVariant": "minimal | editorial | grid | timeline",
+          "accentColor": "string"
+        }
+      },
+      "config_file": "config/theme.ts",
+      "consumed_by": ["globals.css", "tailwind.config.ts", "Layout"]
+    },
+    {
+      "name": "Navigation Domain",
+      "responsibility": "Owns site structure — which pages exist, their order in the nav, their labels. Allows users to hide/show sections (e.g. disable blog entirely) without deleting code.",
+      "data_model": {
+        "NavConfig": {
+          "items": "NavItem[]",
+          "showBlog": "boolean",
+          "showWork": "boolean",
+          "showContact": "boolean"
+        }
+      },
+      "config_file": "config/nav.ts",
+      "consumed_by": ["Header", "Footer", "Sitemap"]
+    },
+    {
+      "name": "SEO & Meta Domain",
+      "responsibility": "Owns metadata generation — page titles, descriptions, Open Graph images, Twitter cards, JSON-LD structured data, sitemap.xml, robots.txt, RSS feed. Reads from all other domains.",
+      "config_file": "lib/seo.ts",
+      "consumed_by": ["All pages via Next.js Metadata API"]
+    },
+    {
+      "name": "Integrations Domain",
+      "responsibility": "Owns optional third-party integrations — contact form (Resend), analytics (Vercel Analytics), comments (optional). All integrations are opt-in via environment variables and degrade gracefully when not configured.",
+      "config_file": "config/integrations.ts",
+      "consumed_by": ["ContactPage", "Layout (analytics)", "PostPage (comments)"]
+    }
+  ],
+  "instructions": [
+    "Review the requirements summary from phase 1.",
+    "Present this domain map to the user and confirm each domain's scope.",
+    "Identify any cross-domain dependencies that could create tight coupling.",
+    "Flag any domain that the user wants to exclude entirely (e.g. blog-free mode, contact-free mode).",
+    "Produce a domain-map.md in /docs/architecture/ before proceeding."
+  ],
+  "outputs": [
+    "docs/architecture/domain-map.md",
+    "Confirmed domain list with in/out decisions",
+    "Cross-domain dependency graph (text-based)"
+  ],
+  "guardrails": [
+    "Identity Domain is always required — it is the spine of the template.",
+    "Portfolio Domain and Blog Domain are independently toggleable.",
+    "No domain should directly import from another domain's internal modules — only through their public interface (config or lib exports).",
+    "Do not begin file scaffolding during this phase."
+  ]
+}

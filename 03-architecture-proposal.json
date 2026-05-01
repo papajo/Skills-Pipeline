@@ -1,0 +1,106 @@
+{
+  "skill": "architecture-proposal",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 3,
+  "title": "Architecture Proposal",
+  "description": "Propose the full technical architecture for the universal portfolio + blog template: Next.js App Router, TypeScript, MDX content layer, CSS custom properties theming, Vercel Edge deployment, and a config-driven customisation system.",
+  "trigger": "/architecture-proposal",
+  "prerequisite": "02-domain-decomposition must be complete",
+  "stack": {
+    "framework": "Next.js 15 (App Router)",
+    "language": "TypeScript 5.x (strict mode)",
+    "styling": "CSS Modules + CSS Custom Properties (no Tailwind required, but compatible)",
+    "content": "MDX via next-mdx-remote or @next/mdx, with gray-matter for frontmatter",
+    "images": "next/image with local and remote support",
+    "deployment": "Vercel Edge (static export compatible, ISR optional)",
+    "analytics": "Vercel Analytics (opt-in)",
+    "email": "Resend (opt-in, contact form)",
+    "testing": "Vitest + React Testing Library + Playwright (E2E)"
+  },
+  "directory_structure": {
+    "app/": "Next.js App Router pages and layouts",
+    "app/(portfolio)/work/": "Portfolio routes — /work and /work/[slug]",
+    "app/(blog)/blog/": "Blog routes — /blog and /blog/[slug]",
+    "app/about/": "About page",
+    "app/contact/": "Contact page",
+    "components/": "Shared UI components",
+    "components/ui/": "Primitive components (Button, Card, Badge, Tag)",
+    "components/layout/": "Header, Footer, Nav, PageWrapper",
+    "components/portfolio/": "WorkCard, WorkGrid, WorkDetail",
+    "components/blog/": "PostCard, PostList, PostDetail, MDXComponents",
+    "components/identity/": "Avatar, Bio, SocialLinks, ResumeButton",
+    "content/work/": "MDX or JSON work item files",
+    "content/blog/": "MDX blog post files",
+    "config/": "identity.ts, theme.ts, nav.ts, integrations.ts",
+    "lib/": "seo.ts, content.ts, rss.ts, utils.ts",
+    "public/": "Static assets — favicon, OG image fallback, resume PDF",
+    "styles/": "globals.css, tokens.css (CSS custom properties)",
+    "docs/": "Architecture docs, ADRs, requirements"
+  },
+  "key_architectural_decisions": [
+    {
+      "decision": "Config-driven customisation over UI-based",
+      "rationale": "Keeps the template dependency-free and avoids a database requirement. Technical users edit TypeScript configs directly. Non-technical users get a well-commented config file that reads like a form.",
+      "files": ["config/identity.ts", "config/theme.ts", "config/nav.ts"]
+    },
+    {
+      "decision": "MDX-first content authoring",
+      "rationale": "MDX works for both technical (code blocks, embedded components) and non-technical (plain prose, images) content. Zero CMS dependency means zero recurring cost and no vendor lock-in.",
+      "tradeoff": "Content editors need to be comfortable with Markdown. Mitigation: provide a starter content guide."
+    },
+    {
+      "decision": "CSS Custom Properties for theming",
+      "rationale": "Allows runtime theme switching (light/dark/system) without JavaScript and is compatible with any CSS methodology. Non-technical users change a primaryColor in config and the whole site updates.",
+      "files": ["styles/tokens.css", "config/theme.ts"]
+    },
+    {
+      "decision": "Static generation + ISR for blog posts",
+      "rationale": "Fastest possible page loads on Vercel Edge. Blog posts are statically generated at build time. ISR allows content updates without a full rebuild for users who want live editing.",
+      "next_config": "generateStaticParams + revalidate"
+    },
+    {
+      "decision": "Optional sections via feature flags in nav config",
+      "rationale": "Allows a user to deploy a portfolio-only or blog-only variant without deleting code. Sections are conditionally rendered and excluded from sitemap when disabled.",
+      "files": ["config/nav.ts"]
+    },
+    {
+      "decision": "Persona-agnostic content schema",
+      "rationale": "WorkItem schema uses generic fields (title, summary, tags, media) that map equally to a software project, a design case study, a photography series, or a consulting engagement.",
+      "enforcement": "TypeScript types + Zod validation at build time"
+    }
+  ],
+  "data_flow": {
+    "build_time": [
+      "config/*.ts files are read and validated",
+      "content/work/*.mdx and content/blog/*.mdx are parsed",
+      "generateStaticParams produces all routes",
+      "sitemap.xml and rss.xml are generated",
+      "CSS tokens from theme config are injected into tokens.css"
+    ],
+    "request_time": [
+      "Edge runtime serves static HTML",
+      "CSS custom properties enable theme switching client-side",
+      "Contact form POSTs to /api/contact (Resend integration, opt-in)",
+      "Vercel Analytics fires on page load (opt-in)"
+    ]
+  },
+  "instructions": [
+    "Present this architecture to the user section by section.",
+    "Confirm each key architectural decision — especially MDX vs CMS and config-driven vs UI-driven.",
+    "Identify any decisions the user wants to override.",
+    "Document confirmed decisions as ADRs in /docs/adr/ before proceeding to threat modeling.",
+    "Do not scaffold any files yet."
+  ],
+  "outputs": [
+    "docs/architecture/architecture-proposal.md",
+    "Confirmed stack decisions",
+    "List of ADRs to generate in phase 5"
+  ],
+  "guardrails": [
+    "Do not introduce a database — the template must be zero-infrastructure by default.",
+    "Do not introduce a paid CMS — content must be file-based by default.",
+    "Do not require a build step beyond next build for any core feature.",
+    "All integrations must be opt-in via environment variables."
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "skill": "threat-modeling",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 4,
+  "title": "Threat Modeling",
+  "description": "Identify and mitigate security threats specific to a publicly deployed portfolio + blog template on Vercel Edge. Covers contact form abuse, content injection, dependency supply chain, and template-as-attack-vector risks.",
+  "trigger": "/threat-modeling",
+  "prerequisite": "03-architecture-proposal must be complete",
+  "threat_surface": [
+    "Public contact form — spam, phishing relay, rate abuse",
+    "MDX content rendering — XSS via unsanitised MDX components",
+    "Open Graph image generation — SSRF if og-image accepts arbitrary URLs",
+    "npm dependency chain — malicious packages in a widely-forked template",
+    "Config files committed with secrets — API keys in identity.ts or integrations.ts",
+    "User-generated content if comments are enabled",
+    "Vercel environment variable exposure in client bundles"
+  ],
+  "threats": [
+    {
+      "id": "T01",
+      "name": "Contact Form Spam / Relay Abuse",
+      "surface": "POST /api/contact",
+      "severity": "High",
+      "attack": "Automated bots flood the contact form, causing Resend quota exhaustion or email relay abuse.",
+      "mitigations": [
+        "Implement Cloudflare Turnstile or hCaptcha (free tier) as bot gate",
+        "Rate-limit /api/contact via Vercel Edge middleware (max 5 requests per IP per hour)",
+        "Validate all fields server-side (zod schema on the API route)",
+        "Never expose the sender's email in the response — only acknowledge receipt",
+        "Add honeypot field — hidden input that bots fill but humans don't"
+      ],
+      "implementation_file": "app/api/contact/route.ts"
+    },
+    {
+      "id": "T02",
+      "name": "XSS via MDX Component Injection",
+      "surface": "MDX blog posts and work item descriptions",
+      "severity": "Medium",
+      "attack": "If the template is used as a multi-author platform or if content is pulled from an external CMS without sanitisation, malicious MDX could inject arbitrary script tags.",
+      "mitigations": [
+        "Restrict MDX custom components to a whitelist — define allowedComponents in MDXComponents.tsx",
+        "Never use dangerouslySetInnerHTML without DOMPurify sanitisation",
+        "Content Security Policy header blocking inline scripts",
+        "For single-author use (default), this is low risk — author controls content"
+      ],
+      "implementation_file": "components/blog/MDXComponents.tsx, next.config.ts (headers)"
+    },
+    {
+      "id": "T03",
+      "name": "Secrets Leaked in Config Files",
+      "surface": "config/integrations.ts, .env files",
+      "severity": "Critical",
+      "attack": "Template user commits their Resend API key, analytics ID, or other secrets directly into config files and pushes to a public GitHub repo.",
+      "mitigations": [
+        "All secret values must use process.env — never hardcode in config files",
+        "Add .env.local to .gitignore by default",
+        "Provide a .env.example with placeholder values and inline comments explaining each variable",
+        "Add a pre-commit hook (husky) that scans for common secret patterns (gitleaks or secretlint)",
+        "Document in README: never put real values in config files — only reference env vars"
+      ],
+      "implementation_file": ".env.example, .gitignore, .husky/pre-commit"
+    },
+    {
+      "id": "T04",
+      "name": "Client Bundle Exposure of Server-Only Env Vars",
+      "surface": "Next.js environment variable handling",
+      "severity": "High",
+      "attack": "A template user accidentally uses a secret env var without the NEXT_PUBLIC_ prefix check, or a developer accidentally exposes a server-only var via a shared module imported on the client.",
+      "mitigations": [
+        "Use server-only package in any module that reads secret env vars",
+        "Audit all process.env usages — only NEXT_PUBLIC_ vars may appear in client components",
+        "Add a lint rule (eslint-plugin-n or custom rule) that flags process.env reads in client components",
+        "Document the server-only/client-only boundary in the architecture docs"
+      ],
+      "implementation_file": "lib/integrations.server.ts (server-only import)"
+    },
+    {
+      "id": "T05",
+      "name": "Dependency Supply Chain Attack",
+      "surface": "package.json — widely forked template is a high-value attack target",
+      "severity": "Medium",
+      "attack": "A malicious package is introduced via a transitive dependency. Because this template is forked by many users, a compromised dep spreads widely.",
+      "mitigations": [
+        "Pin all direct dependency versions (no ^ or ~ in package.json)",
+        "Enable Dependabot or Renovate for automated security PRs",
+        "Run npm audit in CI — fail build on high/critical findings",
+        "Keep dependency count minimal — every added package is a risk surface",
+        "Use lockfile (package-lock.json or pnpm-lock.yaml) committed to git"
+      ],
+      "implementation_file": "package.json, .github/dependabot.yml, .github/workflows/ci.yml"
+    },
+    {
+      "id": "T06",
+      "name": "Open Redirect / SSRF via External URL Fields",
+      "surface": "WorkItem.externalUrl, WorkItem.repoUrl, SocialLink.url",
+      "severity": "Low",
+      "attack": "If the template ever renders user-supplied URLs without validation, an attacker (in a multi-user fork) could inject javascript: URLs or internal network URLs.",
+      "mitigations": [
+        "Validate all URL fields with Zod — accept only https:// URLs",
+        "Use a URL allowlist for known safe domains (github.com, linkedin.com, etc.) for social links",
+        "Never use URL fields in fetch() or Image src without validation",
+        "Render external links with rel='noopener noreferrer' and target='_blank'"
+      ],
+      "implementation_file": "lib/validators.ts"
+    },
+    {
+      "id": "T07",
+      "name": "Content Security Policy Gaps",
+      "surface": "HTTP response headers",
+      "severity": "Medium",
+      "attack": "Missing or permissive CSP allows injected scripts, third-party tracking, or clickjacking.",
+      "mitigations": [
+        "Set Content-Security-Policy header in next.config.ts (headers() function)",
+        "Set X-Frame-Options: DENY",
+        "Set X-Content-Type-Options: nosniff",
+        "Set Referrer-Policy: strict-origin-when-cross-origin",
+        "Set Permissions-Policy to restrict camera, microphone, geolocation"
+      ],
+      "implementation_file": "next.config.ts"
+    }
+  ],
+  "instructions": [
+    "Review this threat model with the user.",
+    "Confirm which threats are in scope for the initial release (T01, T03, T04 are non-negotiable).",
+    "Flag any mitigations that conflict with the user's deployment setup.",
+    "Produce a threat-model.md in /docs/security/ before proceeding.",
+    "Reference this document when generating API routes and config files in phase 7."
+  ],
+  "outputs": [
+    "docs/security/threat-model.md",
+    "List of mitigations to implement in phase 7",
+    "List of deferred mitigations for future releases"
+  ],
+  "guardrails": [
+    "T03 (secrets in config) must always be mitigated — non-negotiable for a public template.",
+    "T01 (contact form abuse) must be mitigated before the contact route is scaffolded.",
+    "Never skip threat modeling by saying 'it is just a portfolio' — it is a template cloned by thousands."
+  ]
+}

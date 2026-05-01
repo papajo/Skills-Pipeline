@@ -1,0 +1,31 @@
+{
+  "skill": "clarify-requirements",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 1,
+  "title": "Clarify Requirements",
+  "description": "Interactive requirements gathering for a universal portfolio + blog template that adapts to any persona — from ML engineers to photographers to consultants — deployed on Vercel using TypeScript, HTML, CSS, and optional Next.js.",
+  "trigger": "/clarify-requirements",
+  "instructions": [
+    "Begin a structured interview with the user. Ask one section at a time. Do not dump all questions at once.",
+    "Section A — Persona Scope: Who are the intended end-users of the template? Is it truly persona-agnostic or does it have a primary target (technical vs creative vs professional)? What is the minimum viable persona set to design for?",
+    "Section B — Portfolio Domain: What types of work items need to be showcased? (Projects, case studies, artworks, publications, code repos, videos, PDFs?) Should work items support rich media or text-only? Is there a need for password-protected or private work items?",
+    "Section C — Blog Domain: What content types does the blog support? (Long-form articles, short notes, tutorials, image galleries?) Is MDX (Markdown + JSX) the authoring format or is a CMS (Sanity, Contentful) preferred? Are code syntax highlighting and math rendering required?",
+    "Section D — Identity & Customisation: How deeply should a new user be able to customise the template? (Colours, fonts, layout, sections?) Is there a config-file-driven customisation system or a UI-based one? Should themes be switchable at runtime or build time?",
+    "Section E — Navigation & Structure: What are the required top-level pages? (Home, About, Work/Portfolio, Blog, Contact?) Are single-page-app scroll sections needed or multi-page routing? Is a CV/Resume download feature required?",
+    "Section F — Integrations: Is contact form functionality needed (email, Resend, Formspree)? Are analytics required (Vercel Analytics, Plausible, PostHog)? Is RSS feed generation needed for the blog? Is sitemap.xml auto-generation needed for SEO?",
+    "Section G — Deployment Constraints: The target is Vercel Edge. Are there ISR (Incremental Static Regeneration) requirements? Is a monorepo structure (Turborepo) needed? Are environment variables needed for any integrations?",
+    "After all sections: Summarise findings as a structured requirements document. Highlight any conflicts or ambiguities. Ask the user to confirm before proceeding to domain decomposition."
+  ],
+  "outputs": [
+    "requirements-summary.md filed in /docs/requirements/",
+    "A list of confirmed in-scope features",
+    "A list of explicitly out-of-scope features",
+    "Open questions log for deferred decisions"
+  ],
+  "guardrails": [
+    "Do not assume the user is technical. Use plain language in all questions.",
+    "Do not begin architecture or code decisions during this phase.",
+    "Do not conflate portfolio and blog requirements — treat them as separate domains that share infrastructure."
+  ]
+}

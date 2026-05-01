@@ -1,0 +1,147 @@
+{
+  "skill": "api-design",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 6,
+  "title": "API Design",
+  "description": "Design all internal API routes, data-fetching functions, and public feed endpoints for the universal portfolio + blog template. Covers the contact form route, RSS feed, sitemap, OG image generation, and internal content-fetching library.",
+  "trigger": "/api-design",
+  "prerequisite": "05-adr-generation must be complete",
+  "api_routes": [
+    {
+      "route": "POST /api/contact",
+      "file": "app/api/contact/route.ts",
+      "description": "Handles contact form submissions. Validates input, applies rate limiting, sends email via Resend (if configured), falls back to mailto if not.",
+      "request_schema": {
+        "name": "string (min 1, max 100)",
+        "email": "string (valid email format)",
+        "message": "string (min 10, max 2000)",
+        "honeypot": "string (must be empty — bot trap)"
+      },
+      "response_schema": {
+        "success": { "status": 200, "body": { "ok": true } },
+        "validation_error": { "status": 400, "body": { "error": "string", "fields": "Record<string, string>" } },
+        "rate_limited": { "status": 429, "body": { "error": "Too many requests. Please wait before sending another message." } },
+        "server_error": { "status": 500, "body": { "error": "Message could not be sent. Please try emailing directly." } }
+      },
+      "security": ["Rate limit: 5 req/IP/hour via Vercel Edge middleware", "Honeypot field check", "Zod validation", "server-only import to prevent client bundle exposure"],
+      "env_vars": ["RESEND_API_KEY (optional)", "CONTACT_EMAIL (required if RESEND_API_KEY is set)", "NEXT_PUBLIC_TURNSTILE_SITE_KEY (optional)"]
+    },
+    {
+      "route": "GET /rss.xml",
+      "file": "app/rss.xml/route.ts",
+      "description": "Generates an RSS 2.0 feed of all published blog posts, sorted by date descending. Only generated if showBlog is true in nav config.",
+      "response": "application/rss+xml",
+      "content": "All published (non-draft) posts with title, description, link, pubDate, and author from identity config",
+      "caching": "Cache-Control: public, max-age=3600, s-maxage=86400"
+    },
+    {
+      "route": "GET /sitemap.xml",
+      "file": "app/sitemap.ts (Next.js Metadata API)",
+      "description": "Auto-generates sitemap.xml including all enabled pages, work items, and blog posts. Respects feature flags — disabled sections are excluded.",
+      "entries": [
+        "/ (home)",
+        "/about",
+        "/work (if showWork)",
+        "/work/[slug] for each WorkItem (if showWork)",
+        "/blog (if showBlog)",
+        "/blog/[slug] for each published Post (if showBlog)",
+        "/contact (if showContact)"
+      ],
+      "excluded": ["Draft posts", "Private work items", "Disabled sections"]
+    },
+    {
+      "route": "GET /robots.txt",
+      "file": "app/robots.ts (Next.js Metadata API)",
+      "description": "Generates robots.txt. Allows all crawlers by default. Disallows /api/ routes.",
+      "content": "User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://{NEXT_PUBLIC_SITE_URL}/sitemap.xml"
+    },
+    {
+      "route": "GET /og (OG Image generation)",
+      "file": "app/og/route.tsx",
+      "description": "Generates Open Graph images using @vercel/og (ImageResponse). Accepts title, description, and type as query params. Used by all pages for social sharing previews.",
+      "query_params": {
+        "title": "string",
+        "description": "string (optional)",
+        "type": "home | post | work | about"
+      },
+      "security": "Input is rendered as text only — no HTML injection possible via ImageResponse API",
+      "caching": "Cache-Control: public, immutable, max-age=31536000"
+    }
+  ],
+  "content_fetching_library": {
+    "file": "lib/content.ts",
+    "description": "All content-fetching functions. These are server-only — never imported in client components.",
+    "functions": [
+      {
+        "name": "getAllPosts()",
+        "returns": "Post[]",
+        "description": "Returns all non-draft blog posts sorted by publishedAt descending. Reads from content/blog/*.mdx."
+      },
+      {
+        "name": "getPostBySlug(slug: string)",
+        "returns": "Post | null",
+        "description": "Returns a single post by slug. Returns null if not found or if draft."
+      },
+      {
+        "name": "getAllWorkItems()",
+        "returns": "WorkItem[]",
+        "description": "Returns all public work items sorted by publishedAt descending."
+      },
+      {
+        "name": "getWorkItemBySlug(slug: string)",
+        "returns": "WorkItem | null",
+        "description": "Returns a single work item by slug. Returns null if not found or if visibility is private."
+      },
+      {
+        "name": "getFeaturedWorkItems()",
+        "returns": "WorkItem[]",
+        "description": "Returns work items where featured is true. Used on the home page."
+      },
+      {
+        "name": "getRecentPosts(count: number)",
+        "returns": "Post[]",
+        "description": "Returns the N most recent published posts. Used on the home page."
+      }
+    ]
+  },
+  "seo_library": {
+    "file": "lib/seo.ts",
+    "description": "Generates Next.js Metadata objects for all pages. Single source of truth for all SEO metadata.",
+    "functions": [
+      {
+        "name": "getBaseMetadata()",
+        "returns": "Metadata",
+        "description": "Returns base metadata from identity config — site name, description, OG image, Twitter card."
+      },
+      {
+        "name": "getPostMetadata(post: Post)",
+        "returns": "Metadata",
+        "description": "Returns post-specific metadata — title, description, OG image URL with post title encoded."
+      },
+      {
+        "name": "getWorkItemMetadata(item: WorkItem)",
+        "returns": "Metadata",
+        "description": "Returns work item-specific metadata."
+      }
+    ]
+  },
+  "instructions": [
+    "Present each API route and library function to the user.",
+    "Confirm the contact form flow — especially the Resend integration and fallback behaviour.",
+    "Confirm the OG image design approach.",
+    "Document any route the user wants to add or remove.",
+    "This design feeds directly into phase 7 (code scaffolding) — confirm all routes before scaffolding begins."
+  ],
+  "outputs": [
+    "docs/api/api-design.md",
+    "Confirmed route list",
+    "Confirmed library function signatures"
+  ],
+  "guardrails": [
+    "All API routes must validate input with Zod before processing.",
+    "No API route may expose internal error details in the response body — log server-side only.",
+    "Content fetching functions must be marked server-only.",
+    "OG image route must never accept HTML or markup as input — text only."
+  ]
+}

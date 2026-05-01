@@ -1,0 +1,156 @@
+{
+  "skill": "adr-generation",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 5,
+  "title": "Architecture Decision Records (ADR) Generation",
+  "description": "Generate all Architecture Decision Records for the universal portfolio + blog template. Each ADR captures a decision, its context, alternatives considered, and consequences. These become the living memory of the project.",
+  "trigger": "/adr-generation",
+  "prerequisite": "03-architecture-proposal and 04-threat-modeling must be complete",
+  "adr_format": {
+    "filename": "docs/adr/ADR-NNN-short-title.md",
+    "sections": ["Status", "Context", "Decision", "Alternatives Considered", "Consequences", "Related ADRs"]
+  },
+  "adrs": [
+    {
+      "id": "ADR-001",
+      "title": "Use Next.js App Router as the framework",
+      "status": "Accepted",
+      "context": "The template needs server-side rendering for SEO, static generation for performance, and a file-based routing system that is approachable for developers of all levels. It must deploy to Vercel with zero configuration.",
+      "decision": "Use Next.js 15 with the App Router. All pages are React Server Components by default. Client components are opt-in via 'use client'.",
+      "alternatives": [
+        "Astro — excellent for content sites but less familiar ecosystem; fewer React component libraries available",
+        "SvelteKit — great performance but TypeScript ecosystem is smaller; template users are more likely to know React",
+        "Remix — strong data loading model but more complex than needed for a static-leaning portfolio"
+      ],
+      "consequences": [
+        "Positive: Zero-config Vercel deployment, built-in image optimisation, built-in metadata API",
+        "Positive: Large ecosystem of React UI components usable in the template",
+        "Negative: App Router has a steeper learning curve than Pages Router for new Next.js users",
+        "Mitigation: Provide thorough inline comments in all route files"
+      ]
+    },
+    {
+      "id": "ADR-002",
+      "title": "MDX for content authoring (no CMS by default)",
+      "status": "Accepted",
+      "context": "The template must work for free, with zero infrastructure. Non-technical users need a simple way to write content. Technical users need code blocks and embedded components.",
+      "decision": "Use MDX files in /content/blog/ and /content/work/ as the default content layer. Gray-matter handles frontmatter. next-mdx-remote handles rendering.",
+      "alternatives": [
+        "Sanity CMS — excellent editing UI but requires a free-tier account and adds vendor dependency",
+        "Contentlayer — great DX but was deprecated in 2024",
+        "Notion as CMS — popular but API rate limits and fragile integration"
+      ],
+      "consequences": [
+        "Positive: Zero cost, zero vendor lock-in, content lives in git alongside code",
+        "Positive: MDX supports both plain prose and rich technical content",
+        "Negative: Non-technical users must learn Markdown syntax",
+        "Mitigation: Provide a content-guide.md with examples and a starter post"
+      ]
+    },
+    {
+      "id": "ADR-003",
+      "title": "CSS Custom Properties for theming (not Tailwind by default)",
+      "status": "Accepted",
+      "context": "The template must be customisable by non-technical users without requiring knowledge of a utility class system. It must support light/dark/system theme switching.",
+      "decision": "Use CSS Custom Properties defined in styles/tokens.css as the theming layer. Config values in config/theme.ts are mapped to CSS variables at build time. Tailwind can be layered on top as an optional addon.",
+      "alternatives": [
+        "Tailwind CSS — excellent DX for developers but intimidating for non-technical users; custom properties are more universal",
+        "CSS-in-JS (styled-components) — runtime overhead and added bundle size",
+        "Shadcn/ui — great component library but opinionated and heavy for a minimal template"
+      ],
+      "consequences": [
+        "Positive: Theme customisation requires only changing values in tokens.css — no CSS knowledge needed",
+        "Positive: Zero runtime overhead — pure CSS",
+        "Negative: Less composable than utility classes for complex layouts",
+        "Mitigation: Provide a well-documented tokens.css with comments explaining each variable"
+      ]
+    },
+    {
+      "id": "ADR-004",
+      "title": "Config-file-driven customisation (not UI-based)",
+      "status": "Accepted",
+      "context": "The template must allow deep customisation without a database or admin UI. It should be as easy as editing a well-commented TypeScript file.",
+      "decision": "All customisation is done via files in /config/: identity.ts, theme.ts, nav.ts, integrations.ts. Files are TypeScript with Zod validation so type errors surface immediately.",
+      "alternatives": [
+        "Admin UI with database — adds infrastructure, cost, and complexity",
+        "JSON config files — no type safety, harder to validate",
+        "Environment variable-only config — works for secrets but not for identity and theme data"
+      ],
+      "consequences": [
+        "Positive: Zero infrastructure cost, all config lives in git, type-safe",
+        "Positive: Non-technical users guided by TypeScript autocomplete and inline JSDoc comments",
+        "Negative: Requires a code editor and basic comfort with text files",
+        "Mitigation: Provide a video walkthrough of customising the config files"
+      ]
+    },
+    {
+      "id": "ADR-005",
+      "title": "Feature flags in nav config for optional sections",
+      "status": "Accepted",
+      "context": "Some users want a portfolio-only site (no blog). Others want a blog-only site. The template must support all combinations without requiring code deletion.",
+      "decision": "config/nav.ts contains boolean flags: showBlog, showWork, showContact. When false, the corresponding routes return 404, nav links are hidden, and the section is excluded from sitemap.xml.",
+      "alternatives": [
+        "Separate template variants (portfolio-only, blog-only, full) — maintenance burden of keeping three templates in sync",
+        "Environment variable flags — less discoverable for non-technical users"
+      ],
+      "consequences": [
+        "Positive: One codebase, infinite configurations",
+        "Positive: Discoverable via TypeScript config file",
+        "Negative: Slightly more complex routing logic",
+        "Mitigation: Centralise flag checks in a single lib/features.ts helper"
+      ]
+    },
+    {
+      "id": "ADR-006",
+      "title": "Zod for runtime validation of content and config",
+      "status": "Accepted",
+      "context": "Config files and MDX frontmatter must be validated at build time to catch errors before deployment. TypeScript types alone are insufficient for runtime values.",
+      "decision": "Use Zod to define schemas for all config types and MDX frontmatter. Validation runs during next build. Invalid content throws a descriptive error with the file path and field name.",
+      "alternatives": [
+        "Manual validation with if/throw — verbose and inconsistent",
+        "TypeScript satisfies keyword — compile-time only, not runtime"
+      ],
+      "consequences": [
+        "Positive: Build fails fast with clear error messages before bad content reaches production",
+        "Positive: Zod schemas double as TypeScript types (z.infer<typeof schema>)",
+        "Negative: Adds zod as a dependency",
+        "Mitigation: Zod is a single, stable, widely-used package with no transitive dependencies"
+      ]
+    },
+    {
+      "id": "ADR-007",
+      "title": "All third-party integrations are opt-in via environment variables",
+      "status": "Accepted",
+      "context": "The template must work out of the box with zero environment variables configured. Integrations like Resend, Vercel Analytics, and Turnstile are optional enhancements.",
+      "decision": "Each integration checks for its required env var at runtime. If absent, the feature gracefully degrades (contact form shows a mailto link, analytics is skipped, captcha is skipped in dev).",
+      "alternatives": [
+        "Required env vars — breaks first-run experience for users who haven't configured integrations",
+        "Hard-coded provider defaults — vendor lock-in"
+      ],
+      "consequences": [
+        "Positive: Clone and run works immediately with zero config",
+        "Positive: Users adopt integrations progressively",
+        "Negative: Slightly more complex conditional rendering in components",
+        "Mitigation: Centralise all integration checks in lib/integrations.ts"
+      ]
+    }
+  ],
+  "instructions": [
+    "Generate each ADR as a separate markdown file in docs/adr/.",
+    "Present each ADR to the user and ask for confirmation or amendment.",
+    "If the user overrides a decision, update the ADR status to 'Superseded' and create a new ADR.",
+    "After all ADRs are confirmed, produce a docs/adr/README.md index linking all ADRs.",
+    "Reference ADRs by ID in code comments when implementing the corresponding decision."
+  ],
+  "outputs": [
+    "docs/adr/ADR-001.md through ADR-007.md",
+    "docs/adr/README.md (index)",
+    "ADR ID references to embed in code comments"
+  ],
+  "guardrails": [
+    "Never delete an ADR — only supersede it with a new one.",
+    "ADR status must be one of: Proposed, Accepted, Superseded, Deprecated.",
+    "Every major architectural decision that affects more than one file must have an ADR."
+  ]
+}
