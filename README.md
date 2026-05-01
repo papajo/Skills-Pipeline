@@ -173,17 +173,73 @@ Every skill ends with an `instructions` block that says: *"Confirm with the user
 
 ---
 
-### Skills 07–13 *(Coming Soon)*
+### `07-code-scaffolding.json`
+**Trigger:** `/scaffold`
+**Prerequisite:** Skill 06 complete
+**Time:** 30–60 min
+**What it does:** Generates the full file and folder skeleton — all route files, component stubs, config files, content examples, and utility modules wired together. Every file gets a top-of-file comment. Every stub gets a JSDoc comment. Every placeholder gets a `// TODO` comment. Ends with a `tsc --noEmit` confirmation.
+**You get:** A runnable Next.js project with zero TypeScript errors and two starter content files.
+**Guardrail:** No business logic during scaffolding — stubs and TODOs only. Config files must use placeholder values, never real personal data.
 
-| # | Skill | Trigger | What it produces |
-|---|---|---|---|
-| 07 | Code Scaffolding | `/scaffold` | Full file/folder skeleton with placeholder implementations |
-| 08 | Refactoring | `/refactor` | Improvement plan with atomic commits, no behaviour changes |
-| 09 | Test Generation | `/generate-tests` | Unit tests (Vitest), integration tests, E2E tests (Playwright) |
-| 10 | PR Review | `/review-pr` | Pre-merge checklist, security scan, accessibility audit |
-| 11 | Documentation | `/generate-docs` | JSDoc, inline comments, content-guide.md, updated README |
-| 12 | Project Snapshot | `/snapshot` | State-of-the-world summary: what's built, what's pending |
-| 13 | Release Notes | `/release-notes` | Human-readable changelog entry for any version |
+---
+
+### `08-refactoring.json`
+**Trigger:** `/refactor`
+**Prerequisite:** Skill 07 complete. Run every 2–3 days of active development.
+**Time:** 20–40 min
+**What it does:** Audits the codebase across 7 categories (Duplication, Architecture Drift, Performance, Accessibility, Type Safety, Dead Code, Security), presents a prioritised findings report, then implements each fix as a single atomic commit with a conventional commit message.
+**You get:** A written audit report + one commit per finding + clean `tsc --noEmit` and passing tests.
+**Guardrail:** Never change observable behaviour. Never bundle more than one fix per commit. Never refactor a file without a test.
+
+---
+
+### `09-test-generation.json`
+**Trigger:** `/generate-tests`
+**Prerequisite:** Skill 07 complete. Run before skill 08.
+**Time:** 45–90 min
+**What it does:** Generates a full test suite — unit tests (Vitest) for all lib functions, integration tests for all API routes, component tests (React Testing Library), and E2E journey tests (Playwright) covering 9 critical user paths including accessibility and feature flag behaviour.
+**You get:** `__tests__/` + `e2e/` directories, test fixtures, coverage report meeting defined targets.
+**Guardrail:** Red-Green-Refactor only. E2E tests run against a real `next build`. Coverage targets are floors not ceilings.
+
+---
+
+### `10-pr-review.json`
+**Trigger:** `/review-pr`
+**Prerequisite:** Skill 09 complete. Run on every PR before merge.
+**Time:** 15–25 min
+**What it does:** Runs a structured review across 8 categories (Correctness, Security, Type Safety, Tests, Accessibility, Performance, Template Compatibility, Documentation) and produces a verdict: APPROVE / REQUEST CHANGES / COMMENT with every finding classified as BLOCKER, WARNING, or SUGGESTION.
+**You get:** Structured review report with verdict, blocker list, and follow-up issue recommendations.
+**⚠️ Auto-blockers:** Hardcoded secrets, `tsc --noEmit` failures, and missing Template Compatibility checks are always BLOCKERs.
+
+---
+
+### `11-documentation.json`
+**Trigger:** `/generate-docs`
+**Prerequisite:** Skill 09 complete. Run before every release.
+**Time:** 30–60 min
+**What it does:** Generates all documentation — README, Customisation Guide, Content Guide, Deployment Guide, Architecture Guide, Contributing Guide, and inline JSDoc for all exported functions. Every end-user doc is verified via a persona check: *"Can a non-technical photographer complete this step?"*
+**You get:** 6 documentation files + fully documented source code.
+**Guardrail:** No jargon in end-user docs. No undocumented exported functions. Documentation ships in the same PR as the feature.
+
+---
+
+### `12-project-snapshot.json`
+**Trigger:** `/snapshot`
+**Prerequisite:** Can run any time after skill 07. Run before every release and at the start of every new work session.
+**Time:** 15–20 min
+**What it does:** Reads the actual codebase (never from memory) and produces a 10-section state-of-the-world document: stack summary, feature completion matrix (COMPLETE / IN PROGRESS / NOT STARTED / DEFERRED), ADR log, technical debt register, open issues, recent commits, gaps vs original requirements, and next session priorities.
+**You get:** `docs/snapshots/YYYY-MM-DD.md` — the perfect context-restore document after any break.
+**Guardrail:** The snapshot is a mirror, not a marketing document. Never mark a feature COMPLETE without tests.
+
+---
+
+### `13-release-notes.json`
+**Trigger:** `/release-notes`
+**Prerequisite:** Skill 12 complete for the release version.
+**Time:** 20–30 min
+**What it does:** Generates dual-audience release notes from the git log and closed issues — plain English end-user notes and precise developer notes with breaking changes, migration steps, and dependency changes. Follows semver and Keep a Changelog conventions.
+**You get:** Updated `CHANGELOG.md`, `docs/releases/vX.Y.Z.md`, GitHub Release body, and a migration guide for major versions.
+**Guardrail:** Never write from memory. Never omit breaking changes. No major release without a migration guide.
 
 ---
 
@@ -255,19 +311,20 @@ Every skill ends with a confirmation step. The AI proposes; you decide. Nothing 
 ```
 portfolio-skills/
 ├── README.md                        ← You are here
+├── 00-complete-pipeline.json        ← All 13 skills in one file
 ├── 01-clarify-requirements.json
 ├── 02-domain-decomposition.json
 ├── 03-architecture-proposal.json
 ├── 04-threat-modeling.json
 ├── 05-adr-generation.json
 ├── 06-api-design.json
-├── 07-code-scaffolding.json         ← Coming soon
-├── 08-refactoring.json              ← Coming soon
-├── 09-test-generation.json          ← Coming soon
-├── 10-pr-review.json                ← Coming soon
-├── 11-documentation.json            ← Coming soon
-├── 12-project-snapshot.json         ← Coming soon
-└── 13-release-notes.json            ← Coming soon
+├── 07-code-scaffolding.json
+├── 08-refactoring.json
+├── 09-test-generation.json
+├── 10-pr-review.json
+├── 11-documentation.json
+├── 12-project-snapshot.json
+└── 13-release-notes.json
 ```
 
 ---

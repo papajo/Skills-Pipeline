@@ -1,0 +1,111 @@
+{
+  "skill": "release-notes",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 13,
+  "title": "Release Notes",
+  "description": "Generate human-readable, dual-audience release notes for any version of the universal portfolio + blog template. Every release note is written twice — once for end-users (non-technical, plain English, focused on what changed for them) and once for developers (technical, precise, includes migration steps and breaking changes).",
+  "trigger": "/release-notes",
+  "prerequisite": "12-project-snapshot complete for the release version. Run before tagging a release on GitHub.",
+  "instructions": [
+    "Ask the user for: the new version number, the previous version number, and the release type (patch | minor | major).",
+    "Read the git log between the two version tags (or from last tag to HEAD if releasing from current state).",
+    "Read the latest docs/snapshots/ file for context.",
+    "Read all closed GitHub issues and merged PRs since the last release.",
+    "Generate release notes in BOTH formats: end-user and developer.",
+    "For major releases: include a migration guide section.",
+    "Save to CHANGELOG.md (appended at top) and as a separate docs/releases/vX.Y.Z.md file.",
+    "After generating, ask the user to review both formats before finalising."
+  ],
+  "versioning_rules": {
+    "scheme": "Semantic Versioning (semver) — MAJOR.MINOR.PATCH",
+    "patch": "Bug fixes, security patches, documentation updates. No new features. No breaking changes.",
+    "minor": "New features that are backwards compatible. New config options with defaults. New optional integrations.",
+    "major": "Breaking changes to config file shapes, removed features, changed directory structure, changed content frontmatter fields that require migration."
+  },
+  "end_user_release_notes": {
+    "audience": "Non-technical users who have deployed the template",
+    "tone": "Friendly, plain English, focused on impact not implementation",
+    "format": {
+      "header": "## What's New in v{version}",
+      "sections": [
+        "✨ New Features — what can you do now that you couldn't before, explained in plain English",
+        "🐛 Bug Fixes — what was broken and is now fixed, described by symptom not by code",
+        "⚡ Performance Improvements — what feels faster or loads better",
+        "🔒 Security Updates — reassurance that the template is kept up to date (no technical detail)",
+        "📖 Documentation — new guides or improved instructions",
+        "⚠️ Action Required — only present if the user needs to do something (update a config, rename a file)"
+      ],
+      "example_entry": "✨ **Theme toggle now remembers your preference** — When visitors switch between light and dark mode, their choice is now saved so they see the same theme when they return."
+    }
+  },
+  "developer_release_notes": {
+    "audience": "Developers forking, extending, or contributing to the template",
+    "tone": "Precise, technical, includes types and file references",
+    "format": {
+      "header": "## v{version} — {date}",
+      "sections": [
+        "Breaking Changes — config shape changes, removed exports, renamed files, frontmatter field changes with before/after examples",
+        "New Features — new components, new lib functions, new API routes, new config options with types",
+        "Bug Fixes — issue number, root cause, fix approach",
+        "Performance — what changed, why, measured impact if available",
+        "Security — CVE references if applicable, dependency upgrades, new mitigations",
+        "Dependencies — added, removed, upgraded packages with version numbers",
+        "ADRs — new or superseded ADRs in this release",
+        "Migration Guide — step by step instructions for upgrading from previous version (major releases only)"
+      ],
+      "example_entry": "**Breaking:** `WorkItem.externalLink` renamed to `WorkItem.externalUrl` to match URL field naming convention (ADR-006). Update all `content/work/*.mdx` frontmatter files: rename `externalLink:` to `externalUrl:`."
+    }
+  },
+  "migration_guide_template": {
+    "when": "Major version releases only",
+    "sections": [
+      "Overview — what changed and why (link to ADR)",
+      "Step-by-step migration instructions numbered precisely",
+      "Before/after code examples for every breaking change",
+      "Automated migration script if possible (codemods)",
+      "What to test after migrating",
+      "Rollback instructions"
+    ]
+  },
+  "changelog_format": {
+    "file": "CHANGELOG.md",
+    "convention": "Keep a Changelog (keepachangelog.com)",
+    "structure": "Newest release at top. Each release has: version header, date, end-user summary (2-3 sentences), then full developer notes.",
+    "unreleased_section": "Always maintain an [Unreleased] section at the top for changes not yet tagged"
+  },
+  "release_checklist": [
+    "All tests passing (CI green)",
+    "tsc --noEmit clean",
+    "npm audit — no high or critical vulnerabilities",
+    "docs/snapshots/LATEST.md updated",
+    "CHANGELOG.md updated with new version at top",
+    "docs/releases/vX.Y.Z.md created",
+    "package.json version bumped",
+    "Git tag created: git tag -a vX.Y.Z -m 'Release vX.Y.Z'",
+    "GitHub Release created with end-user release notes as the body",
+    "Live demo site redeployed and verified"
+  ],
+  "release_types_guide": {
+    "v0.x.x": "Pre-release / template in active development. Breaking changes allowed without major version bump.",
+    "v1.0.0": "First stable release. Config file shapes are considered stable API. Breaking changes require major version.",
+    "v1.x.0": "Minor releases — new features, new optional config fields, new integrations.",
+    "v1.x.x": "Patch releases — bug fixes, security patches, documentation improvements."
+  },
+  "outputs": [
+    "CHANGELOG.md — updated with new version entry at top",
+    "docs/releases/vX.Y.Z.md — standalone release file",
+    "End-user release notes (ready to paste as GitHub Release body)",
+    "Developer release notes (ready for CHANGELOG.md)",
+    "Migration guide (major releases only)",
+    "Git tag command to run"
+  ],
+  "guardrails": [
+    "Never write release notes from memory — always read the git log and closed issues first.",
+    "Never omit breaking changes from the developer notes — even small ones.",
+    "Never describe a bug fix in technical terms in the end-user notes — describe the symptom and the resolution.",
+    "Never release a major version without a migration guide.",
+    "The [Unreleased] section in CHANGELOG.md must be cleared and moved to the new version entry on every release.",
+    "Never bump the version in package.json without updating CHANGELOG.md in the same commit."
+  ]
+}

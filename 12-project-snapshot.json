@@ -1,0 +1,159 @@
+{
+  "skill": "project-snapshot",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 12,
+  "title": "Project Snapshot",
+  "description": "Generate a comprehensive state-of-the-world summary of the universal portfolio + blog template at any point in time. Captures what is built, what is pending, what decisions have been made, what technical debt exists, and what the next priorities are. Acts as the perfect context-restore document for returning to a project after a break — or for onboarding a new contributor.",
+  "trigger": "/snapshot",
+  "prerequisite": "Can be run at any point after phase 07. Recommended: run before every release, after every major feature, and at the start of every new work session.",
+  "instructions": [
+    "Read the full file tree, all docs/ files, all ADRs, the git log (last 20 commits), and all open GitHub issues before generating the snapshot.",
+    "Do not summarise from memory — read the actual current state of the codebase.",
+    "Structure the snapshot in the exact sections defined below.",
+    "Be precise about what is complete vs partially complete vs not started — no vague language like 'mostly done'.",
+    "Flag any drift between the original architecture proposal and the current implementation.",
+    "After generating the snapshot, ask the user: 'Does this accurately reflect the current state? Anything missing or incorrect?'",
+    "Save the snapshot as docs/snapshots/YYYY-MM-DD.md — never overwrite previous snapshots."
+  ],
+  "snapshot_sections": [
+    {
+      "section": "1. Project Identity",
+      "content": [
+        "Project name and one-line description",
+        "Current version (from package.json)",
+        "Snapshot date",
+        "Author / maintainer",
+        "Live demo URL (if deployed)",
+        "Repository URL"
+      ]
+    },
+    {
+      "section": "2. Stack Summary",
+      "content": [
+        "Framework and version",
+        "Language and version",
+        "Styling approach",
+        "Content layer",
+        "Testing stack",
+        "Deployment target",
+        "Active integrations (Resend, analytics, captcha)",
+        "Any deviations from the original architecture proposal in ADR-001 through ADR-007"
+      ]
+    },
+    {
+      "section": "3. Feature Completion Matrix",
+      "content": "A table of all planned features with status: COMPLETE | IN PROGRESS | NOT STARTED | DEFERRED",
+      "features_to_track": [
+        "Identity domain (config/identity.ts)",
+        "Portfolio domain — work index page",
+        "Portfolio domain — work detail page",
+        "Blog domain — post index page",
+        "Blog domain — post detail page",
+        "MDX rendering with syntax highlighting",
+        "Theme system (CSS custom properties)",
+        "Light / dark / system theme toggle",
+        "Navigation feature flags",
+        "Contact form — UI",
+        "Contact form — API route with validation",
+        "Contact form — Resend integration",
+        "Contact form — rate limiting",
+        "Contact form — Turnstile captcha",
+        "OG image generation",
+        "Sitemap.xml generation",
+        "RSS feed generation",
+        "robots.txt generation",
+        "SEO metadata — all pages",
+        "JSON-LD structured data",
+        "Accessibility — keyboard navigation",
+        "Accessibility — screen reader tested",
+        "Pre-commit hooks (Husky)",
+        "CI pipeline (GitHub Actions)",
+        "Unit tests — lib/content.ts",
+        "Unit tests — lib/validators.ts",
+        "Unit tests — lib/seo.ts",
+        "Integration tests — /api/contact",
+        "Component tests — all components",
+        "E2E tests — all user journeys",
+        "README.md",
+        "docs/customisation.md",
+        "docs/content-guide.md",
+        "docs/deployment.md",
+        "CONTRIBUTING.md"
+      ]
+    },
+    {
+      "section": "4. Architecture Decisions Log",
+      "content": [
+        "List all ADRs with ID, title, and current status (Accepted / Superseded / Deprecated)",
+        "Flag any ADRs that have been superseded and whether the new decision is fully implemented",
+        "Flag any implementation decisions made informally (without an ADR) that should be documented"
+      ]
+    },
+    {
+      "section": "5. Technical Debt Register",
+      "content": [
+        "All outstanding TODO comments in the codebase with file:line references",
+        "Any known test coverage gaps",
+        "Any known accessibility issues not yet fixed",
+        "Any pinned dependency versions that need upgrading",
+        "Any security findings from the last npm audit",
+        "Any refactoring findings from skill 08 that were deferred"
+      ]
+    },
+    {
+      "section": "6. Open Issues Summary",
+      "content": [
+        "Count of open GitHub issues by label (bug, enhancement, documentation, question)",
+        "Top 3 highest-priority open issues",
+        "Any issues that are blocked and why"
+      ]
+    },
+    {
+      "section": "7. Recent Changes (Last 20 Commits)",
+      "content": [
+        "Formatted git log: date, commit hash (short), conventional commit message",
+        "Highlight any commits that touched config file shapes (potential breaking changes)",
+        "Highlight any commits that introduced new dependencies"
+      ]
+    },
+    {
+      "section": "8. Known Gaps vs Original Requirements",
+      "content": [
+        "Review docs/requirements/requirements-summary.md from phase 01",
+        "List any confirmed requirements that are not yet implemented",
+        "List any requirements that were descoped and the reason why",
+        "List any requirements that were added after phase 01 and whether they have an ADR"
+      ]
+    },
+    {
+      "section": "9. Next Session Priorities",
+      "content": [
+        "Top 3 recommended next actions based on the snapshot findings",
+        "Which skill to run next (e.g. /refactor if debt is high, /generate-tests if coverage is low, /release-notes if feature-complete)",
+        "Any blockers that need resolving before development can continue"
+      ]
+    },
+    {
+      "section": "10. Onboarding Summary",
+      "content": [
+        "3-paragraph plain English summary a new contributor could read to understand the project state",
+        "Prerequisites for running the project locally",
+        "The single most important thing to know about the codebase"
+      ]
+    }
+  ],
+  "outputs": [
+    "docs/snapshots/YYYY-MM-DD.md — dated snapshot file",
+    "Updated docs/snapshots/LATEST.md — symlink or copy of the most recent snapshot",
+    "A prioritised list of next session actions presented to the user"
+  ],
+  "guardrails": [
+    "Never generate a snapshot from memory — always read the actual codebase state first.",
+    "Never overwrite a previous snapshot — append a new dated file.",
+    "The Feature Completion Matrix must use exactly three states: COMPLETE, IN PROGRESS, NOT STARTED, DEFERRED — no ambiguous language.",
+    "Never mark a feature COMPLETE if it has no tests — at minimum mark it IN PROGRESS.",
+    "The Technical Debt Register must include every TODO comment — none can be silently omitted.",
+    "The snapshot is a mirror, not a marketing document — be honest about gaps and debt."
+  ]
+}
