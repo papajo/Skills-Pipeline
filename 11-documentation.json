@@ -1,0 +1,144 @@
+{
+  "skill": "documentation-generation",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 11,
+  "title": "Documentation Generation",
+  "description": "Generate all documentation for the universal portfolio + blog template — from inline JSDoc to end-user guides. Documentation must serve two audiences simultaneously: the developer forking and extending the template, and the non-technical user customising and publishing their site.",
+  "trigger": "/generate-docs",
+  "prerequisite": "09-test-generation complete. Run after any significant feature addition and before every release.",
+  "instructions": [
+    "Identify the target audience for each document before writing: Developer, End-User, or Both.",
+    "For end-user documents: use plain language, no jargon, include screenshots or ASCII diagrams, assume no coding knowledge beyond editing a text file.",
+    "For developer documents: be precise, include types, reference ADRs, include code examples.",
+    "For inline JSDoc: every exported function, type, and constant must have documentation. Private helpers need only a one-line comment.",
+    "After generating documentation, do a persona check: read each end-user doc as if you are a non-technical photographer setting up their portfolio. Is anything confusing?"
+  ],
+  "documentation_map": [
+    {
+      "doc": "README.md (root)",
+      "audience": "Both",
+      "location": "README.md",
+      "sections": [
+        "Hero — one sentence describing what the template is and who it is for",
+        "Live Demo — link to the deployed example site",
+        "Features — bullet list of what the template includes",
+        "Quick Start — clone, install, run in 3 commands",
+        "Customisation — link to docs/customisation.md",
+        "Deployment — link to docs/deployment.md",
+        "Tech Stack — brief mention of Next.js, TypeScript, MDX, Vercel",
+        "Contributing — link to CONTRIBUTING.md",
+        "License"
+      ]
+    },
+    {
+      "doc": "Customisation Guide",
+      "audience": "End-User (primary), Developer (secondary)",
+      "location": "docs/customisation.md",
+      "sections": [
+        "Step 1 — Set your identity (config/identity.ts): name, bio, avatar, social links, resume",
+        "Step 2 — Choose your theme (config/theme.ts): colours, fonts, layout variant",
+        "Step 3 — Configure navigation (config/nav.ts): show/hide sections, reorder nav items",
+        "Step 4 — Add your work (content/work/): copy the example file, fill in your details",
+        "Step 5 — Write your first post (content/blog/): copy the example file, write in Markdown",
+        "Step 6 — Set up integrations (config/integrations.ts + .env.local): contact form, analytics",
+        "FAQ: Can I remove the blog entirely? Can I use my own fonts? Can I add a custom page?"
+      ],
+      "tone": "Friendly, encouraging, jargon-free. Use 'you' throughout. Every step should feel achievable."
+    },
+    {
+      "doc": "Content Guide",
+      "audience": "End-User",
+      "location": "docs/content-guide.md",
+      "sections": [
+        "How to write a work item — all frontmatter fields explained with examples for different persona types (developer, designer, photographer, consultant)",
+        "How to write a blog post — frontmatter fields, Markdown syntax cheat sheet, how to add images",
+        "How to use MDX features — embedding images, adding code blocks with syntax highlighting, using callout components",
+        "How to add images — where to put them, how to reference them, recommended sizes",
+        "How to draft and publish — setting draft:true, previewing locally, publishing by setting draft:false",
+        "Content examples for different personas: technical tutorial, design case study, photography series, consulting engagement"
+      ]
+    },
+    {
+      "doc": "Deployment Guide",
+      "audience": "End-User (primary)",
+      "location": "docs/deployment.md",
+      "sections": [
+        "Deploy to Vercel in 5 minutes — step by step with screenshots",
+        "Setting environment variables in Vercel dashboard",
+        "Connecting a custom domain",
+        "Environment variable reference table — every variable, whether required or optional, and where to get the value",
+        "Troubleshooting common deployment errors"
+      ],
+      "env_var_table": [
+        { "var": "NEXT_PUBLIC_SITE_URL", "required": true, "description": "Your full site URL e.g. https://yourdomain.com — used for sitemap and OG images" },
+        { "var": "RESEND_API_KEY", "required": false, "description": "From resend.com — enables the contact form email sending" },
+        { "var": "CONTACT_EMAIL", "required": "if RESEND_API_KEY set", "description": "The email address contact form submissions are sent to" },
+        { "var": "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "required": false, "description": "From Cloudflare Turnstile — adds bot protection to contact form" },
+        { "var": "TURNSTILE_SECRET_KEY", "required": "if TURNSTILE_SITE_KEY set", "description": "Server-side Turnstile verification key" }
+      ]
+    },
+    {
+      "doc": "Architecture Guide",
+      "audience": "Developer",
+      "location": "docs/architecture/README.md",
+      "sections": [
+        "Domain map overview — links to domain-map.md",
+        "Directory structure walkthrough — what lives where and why",
+        "Data flow diagram — build time vs request time",
+        "Adding a new page — step by step for developers extending the template",
+        "Adding a new config option — how to add to config/, validators.ts, and wire it through",
+        "Adding a new integration — the opt-in pattern with environment variable degradation"
+      ]
+    },
+    {
+      "doc": "Contributing Guide",
+      "audience": "Developer",
+      "location": "CONTRIBUTING.md",
+      "sections": [
+        "Code of conduct",
+        "How to report a bug — issue template",
+        "How to propose a feature — discussion first, then ADR, then PR",
+        "Development setup — prerequisites, clone, install, run",
+        "The PR process — branch naming, commit format, PR template, review checklist",
+        "The template compatibility rule — every change must work for technical AND non-technical personas",
+        "How to run tests",
+        "How to update documentation"
+      ]
+    },
+    {
+      "doc": "Inline JSDoc Standards",
+      "audience": "Developer",
+      "location": "Embedded in source files",
+      "standards": [
+        "All exported functions: @param, @returns, @throws, @example, @see (ADR reference if applicable)",
+        "All exported types and interfaces: one-line description of the domain they belong to",
+        "All config files: @description explaining each field, @default for optional fields, @example showing a filled-in value",
+        "All React components: @param props description, @example showing JSX usage",
+        "All TODO comments: // TODO(phase-N): description of what needs to be implemented"
+      ]
+    }
+  ],
+  "persona_check_prompts": [
+    "Read docs/customisation.md as a non-technical photographer. Can they complete step 1 without opening any file other than config/identity.ts?",
+    "Read docs/content-guide.md as a consultant who has never used Markdown. Do they understand how to add a case study?",
+    "Read docs/deployment.md as someone who has never deployed a website. Can they get their site live in under 30 minutes?",
+    "Read the README as a developer evaluating whether to use this template. Do they understand the tech stack, the customisation model, and the deployment target in under 2 minutes?"
+  ],
+  "outputs": [
+    "README.md (root) — updated",
+    "docs/customisation.md",
+    "docs/content-guide.md",
+    "docs/deployment.md",
+    "docs/architecture/README.md",
+    "CONTRIBUTING.md",
+    "All exported functions and types documented with JSDoc"
+  ],
+  "guardrails": [
+    "Never use jargon in end-user documents without explaining it inline.",
+    "Never write documentation that assumes the user knows what Next.js or TypeScript is — link to resources instead.",
+    "Never leave an exported function undocumented — undocumented exports are a maintenance liability.",
+    "Documentation must be updated in the same PR as the feature it documents — never as a separate cleanup task.",
+    "The persona check is not optional — run it on every end-user document before marking documentation complete."
+  ]
+}

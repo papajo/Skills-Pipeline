@@ -1,0 +1,126 @@
+{
+  "skill": "pr-review",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 10,
+  "title": "PR Review",
+  "description": "Run a structured pre-merge review on any pull request to the universal portfolio + blog template. Covers correctness, security, accessibility, performance, type safety, test coverage, and documentation — producing a prioritised list of required changes and optional suggestions.",
+  "trigger": "/review-pr",
+  "prerequisite": "09-test-generation complete. Run on every PR before merge.",
+  "instructions": [
+    "Ask the user to provide: the PR diff or list of changed files, the PR description, and the linked issue or ADR if applicable.",
+    "Run each review category below in order. Do not skip categories.",
+    "Classify every finding as: BLOCKER (must fix before merge), WARNING (should fix, non-blocking), SUGGESTION (optional improvement).",
+    "Present findings grouped by category with file:line references where possible.",
+    "After presenting findings, produce a summary: number of blockers, warnings, suggestions, and an overall APPROVE / REQUEST CHANGES verdict.",
+    "Do not approve a PR with any BLOCKER findings.",
+    "If the PR has no linked issue or ADR for a significant change, that is itself a WARNING."
+  ],
+  "review_categories": [
+    {
+      "category": "Correctness",
+      "checks": [
+        "Does the implementation match the linked issue or ADR?",
+        "Are all edge cases handled — null/undefined, empty arrays, missing config values?",
+        "Are async operations correctly awaited?",
+        "Are errors caught and handled — no unhandled promise rejections?",
+        "Does the feature work with all feature flags (showBlog=false, showWork=false, showContact=false)?",
+        "Does the feature work with minimal config (only required fields set in identity.ts)?"
+      ]
+    },
+    {
+      "category": "Security",
+      "checks": [
+        "Are all new API route inputs validated with Zod before processing?",
+        "Are there any new process.env reads in client components (should be server-only)?",
+        "Are there any hardcoded secrets, API keys, or personal data?",
+        "Are any new external URLs rendered without validation via lib/validators.ts?",
+        "Are any new dependencies introduced? If so: are they pinned, audited, and necessary?",
+        "Does the PR maintain the Content Security Policy — no new inline scripts or unsafe-eval?",
+        "Are any new server-only modules correctly marked with the server-only import?"
+      ]
+    },
+    {
+      "category": "Type Safety",
+      "checks": [
+        "Does tsc --noEmit pass with zero errors?",
+        "Are there any new `any` types — can they be replaced with specific types?",
+        "Are there non-null assertions (!) without a comment explaining why they are safe?",
+        "Are new config fields added to the corresponding Zod schema in lib/validators.ts?",
+        "Are new MDX frontmatter fields added to the Post or WorkItem type and schema?"
+      ]
+    },
+    {
+      "category": "Tests",
+      "checks": [
+        "Does the PR include tests for the new behaviour?",
+        "Do all existing tests still pass?",
+        "Are there new edge cases introduced that need test coverage?",
+        "If a new API route is added, does it have integration tests for happy path AND error paths?",
+        "If a new component is added, does it have a component test and an E2E journey?"
+      ]
+    },
+    {
+      "category": "Accessibility",
+      "checks": [
+        "Do all new interactive elements have accessible labels?",
+        "Is the heading hierarchy maintained on any new pages?",
+        "Do new images have meaningful alt text?",
+        "Are new form fields associated with visible labels (not just placeholders)?",
+        "Is colour contrast sufficient for any new text or UI elements?",
+        "Is the new feature keyboard navigable?"
+      ]
+    },
+    {
+      "category": "Performance",
+      "checks": [
+        "Are new images using next/image with explicit dimensions?",
+        "Are new client components justified — could they be React Server Components?",
+        "Are new data fetches cached appropriately (generateStaticParams, revalidate)?",
+        "Does the PR introduce any new render-blocking resources?",
+        "Does bundle size increase significantly — is the new dependency worth its weight?"
+      ]
+    },
+    {
+      "category": "Template Compatibility",
+      "checks": [
+        "Does the change work for both technical and non-technical personas?",
+        "If config files are changed, is the shape backwards compatible — or is a migration guide needed?",
+        "Are new config fields well-commented in TypeScript with JSDoc?",
+        "Does the change respect the zero-infrastructure constraint (no new database, no new CMS)?",
+        "Does the change work with a fresh clone and zero environment variables configured?"
+      ]
+    },
+    {
+      "category": "Documentation",
+      "checks": [
+        "Are new public functions documented with JSDoc?",
+        "Is the README updated if a new feature changes the setup or customisation flow?",
+        "Is docs/content-guide.md updated if new content frontmatter fields are added?",
+        "Is an ADR created or updated if the PR changes an architectural decision?",
+        "Are new TODO comments formatted correctly with phase references?"
+      ]
+    }
+  ],
+  "verdict_criteria": {
+    "APPROVE": "Zero BLOCKER findings. All existing tests pass. tsc --noEmit clean.",
+    "REQUEST_CHANGES": "One or more BLOCKER findings. List all blockers clearly at the top of the review.",
+    "COMMENT": "No blockers but multiple WARNINGs that should be addressed in a follow-up issue."
+  },
+  "review_output_format": {
+    "header": "## PR Review — [PR Title]\n**Verdict:** APPROVE | REQUEST CHANGES | COMMENT\n**Blockers:** N | **Warnings:** N | **Suggestions:** N",
+    "finding_format": "[BLOCKER|WARNING|SUGGESTION] `file:line` — Description of issue and recommended fix."
+  },
+  "outputs": [
+    "Structured review report with verdict",
+    "List of blockers that must be resolved before merge",
+    "List of follow-up issues to open for non-blocking findings"
+  ],
+  "guardrails": [
+    "Never approve a PR with a hardcoded secret — this is always a BLOCKER.",
+    "Never approve a PR where tsc --noEmit fails — type errors are always BLOCKERs.",
+    "Never skip the Template Compatibility category — it is the unique constraint of this project.",
+    "Never leave a finding without a recommended fix — unhelpful reviews block progress.",
+    "A PR that only adds tests is always APPROVE-worthy if tests are correct and passing."
+  ]
+}

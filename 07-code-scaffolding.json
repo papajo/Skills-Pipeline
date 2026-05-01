@@ -1,0 +1,162 @@
+{
+  "skill": "code-scaffolding",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 7,
+  "title": "Code Scaffolding",
+  "description": "Generate the full file and folder skeleton for the universal portfolio + blog template. Creates all route files, component stubs, config files, content examples, and utility modules — wired together but with placeholder implementations ready for development.",
+  "trigger": "/scaffold",
+  "prerequisite": "06-api-design must be complete and all routes confirmed",
+  "instructions": [
+    "Read the confirmed architecture from docs/architecture/architecture-proposal.md and the API design from docs/api/api-design.md before generating any files.",
+    "Scaffold in this exact order: (1) package.json + tsconfig, (2) next.config.ts, (3) config/ files, (4) styles/, (5) lib/, (6) app/ routes, (7) components/, (8) content/ examples, (9) public/ placeholders, (10) docs/ structure, (11) tooling configs.",
+    "Every file must include a top-of-file comment: the file path, its domain, and a one-line description of its responsibility.",
+    "Every function stub must include a JSDoc comment describing parameters, return type, and which ADR governs its behaviour.",
+    "Use TODO comments to mark every placeholder that needs real implementation — format: // TODO(phase): description",
+    "Never generate a file without its corresponding TypeScript type — types come first.",
+    "After scaffolding, run `npx tsc --noEmit` to confirm zero type errors before handing off to the user."
+  ],
+  "scaffold_manifest": {
+    "root": [
+      "package.json",
+      "tsconfig.json",
+      "next.config.ts",
+      ".env.example",
+      ".gitignore",
+      ".eslintrc.json",
+      ".prettierrc",
+      "README.md"
+    ],
+    "config/": [
+      "identity.ts        — Owner data: name, bio, avatar, social links, resume",
+      "theme.ts           — Color scheme, fonts, layout variant, accent color",
+      "nav.ts             — Page visibility flags, nav item order and labels",
+      "integrations.ts    — Resend, analytics, captcha — all opt-in via env vars"
+    ],
+    "styles/": [
+      "globals.css        — Reset, base styles, font imports",
+      "tokens.css         — All CSS custom properties derived from theme config"
+    ],
+    "lib/": [
+      "content.ts         — getAllPosts, getPostBySlug, getAllWorkItems, getWorkItemBySlug",
+      "seo.ts             — getBaseMetadata, getPostMetadata, getWorkItemMetadata",
+      "rss.ts             — generateRSSFeed(posts)",
+      "validators.ts      — Zod schemas for WorkItem, Post, Owner, ThemeConfig, NavConfig",
+      "utils.ts           — slugify, formatDate, computeReadingTime, cn (classnames)",
+      "integrations.ts    — server-only: Resend client, analytics helpers",
+      "features.ts        — isFeatureEnabled(flag) helper reading from nav config"
+    ],
+    "app/": [
+      "layout.tsx               — Root layout: fonts, theme tokens, analytics",
+      "page.tsx                 — Home: featured work + recent posts",
+      "not-found.tsx            — 404 page",
+      "error.tsx                — Error boundary",
+      "about/page.tsx           — About: bio, avatar, skills, resume download",
+      "contact/page.tsx         — Contact: form with honeypot + captcha",
+      "work/page.tsx            — Work index: grid of all WorkItems",
+      "work/[slug]/page.tsx     — Work detail: full case study / project page",
+      "blog/page.tsx            — Blog index: list of all Posts",
+      "blog/[slug]/page.tsx     — Post detail: MDX rendered post",
+      "api/contact/route.ts     — POST handler: validate, rate-limit, send via Resend",
+      "og/route.tsx             — GET handler: OG image generation via @vercel/og",
+      "rss.xml/route.ts         — GET handler: RSS 2.0 feed",
+      "sitemap.ts               — Next.js sitemap generator",
+      "robots.ts                — Next.js robots.txt generator"
+    ],
+    "components/": {
+      "layout/": [
+        "Header.tsx       — Site header with nav links and theme toggle",
+        "Footer.tsx       — Site footer with social links and copyright",
+        "Nav.tsx          — Navigation menu, reads from nav config",
+        "PageWrapper.tsx  — Consistent page padding and max-width",
+        "ThemeToggle.tsx  — Light / dark / system switcher"
+      ],
+      "ui/": [
+        "Button.tsx       — Primary, secondary, ghost variants",
+        "Badge.tsx        — Tag/category pill",
+        "Card.tsx         — Generic content card with optional image",
+        "ExternalLink.tsx — Anchor with rel=noopener noreferrer enforced"
+      ],
+      "identity/": [
+        "Avatar.tsx       — Circular avatar with fallback initials",
+        "Bio.tsx          — Markdown-rendered bio from identity config",
+        "SocialLinks.tsx  — Row of social icon links",
+        "ResumeButton.tsx — Download button, hidden if resumeUrl is null"
+      ],
+      "portfolio/": [
+        "WorkCard.tsx     — Card for a single WorkItem with cover image and tags",
+        "WorkGrid.tsx     — Responsive grid of WorkCards",
+        "WorkDetail.tsx   — Full work item view with media gallery"
+      ],
+      "blog/": [
+        "PostCard.tsx         — Card for a single Post with date and reading time",
+        "PostList.tsx         — Stacked list of PostCards",
+        "PostDetail.tsx       — Full post layout with MDX body",
+        "MDXComponents.tsx    — Custom MDX component map (whitelisted elements only)"
+      ],
+      "seo/": [
+        "StructuredData.tsx   — JSON-LD script tag injection"
+      ]
+    },
+    "content/": {
+      "work/": [
+        "example-project.mdx   — Starter work item with all frontmatter fields documented"
+      ],
+      "blog/": [
+        "hello-world.mdx        — Starter blog post demonstrating MDX features"
+      ]
+    },
+    "public/": [
+      "favicon.ico",
+      "og-default.png    — Default OG image fallback",
+      "robots.txt        — Overridden by app/robots.ts at build time"
+    ],
+    "docs/": [
+      "content-guide.md  — How to write and format content for technical and non-technical users",
+      "customisation.md  — Step-by-step config file walkthrough with screenshots",
+      "deployment.md     — Vercel deployment checklist and environment variable guide"
+    ],
+    "tooling": [
+      ".husky/pre-commit          — Run lint, type-check, secret scan before every commit",
+      ".github/workflows/ci.yml  — Run tests, lint, type-check, npm audit on every PR",
+      ".github/dependabot.yml    — Weekly dependency update PRs"
+    ]
+  },
+  "starter_content": {
+    "example_work_item_frontmatter": {
+      "title": "string — Project or work item name",
+      "summary": "string — One or two sentence description",
+      "tags": ["tag1", "tag2"],
+      "category": "string — e.g. Web Development, Design, Photography, Writing",
+      "coverImage": "string — path to image in public/ or null",
+      "externalUrl": "string — live URL or null",
+      "repoUrl": "string — GitHub URL or null",
+      "publishedAt": "YYYY-MM-DD",
+      "featured": "boolean — show on home page",
+      "visibility": "public"
+    },
+    "example_post_frontmatter": {
+      "title": "string",
+      "description": "string — used in SEO meta and post cards",
+      "tags": ["tag1", "tag2"],
+      "coverImage": "string or null",
+      "publishedAt": "YYYY-MM-DD",
+      "draft": false
+    }
+  },
+  "outputs": [
+    "Full file/folder skeleton at project root",
+    "Zero TypeScript errors confirmed via tsc --noEmit",
+    "Two starter content files (work + blog)",
+    "docs/content-guide.md",
+    "docs/deployment.md"
+  ],
+  "guardrails": [
+    "Never scaffold a file without its TypeScript types defined first.",
+    "Never hardcode secrets or real personal data in any config file — use placeholder strings and comments.",
+    "Never skip the top-of-file comment — it is the navigation system for AI agents in future sessions.",
+    "Never implement business logic during scaffolding — stubs and TODOs only.",
+    "Confirm tsc --noEmit passes before handing off.",
+    "Content example files must work out of the box — the template must be runnable immediately after scaffolding."
+  ]
+}

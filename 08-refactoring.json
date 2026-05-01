@@ -1,0 +1,90 @@
+{
+  "skill": "refactoring",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 8,
+  "title": "Refactoring",
+  "description": "Systematically improve the codebase without changing observable behaviour. Identifies duplication, architectural drift, performance bottlenecks, and accessibility gaps — then produces an atomic commit plan so every improvement is reviewable and reversible.",
+  "trigger": "/refactor",
+  "prerequisite": "07-code-scaffolding complete. Run after any significant feature addition or every 2-3 days of active development.",
+  "instructions": [
+    "Before touching any code, read the full file tree and produce a written audit report. Never refactor silently.",
+    "Categorise every finding by type: Duplication, Architecture Drift, Performance, Accessibility, Type Safety, Dead Code, Security.",
+    "Assign each finding a priority: P1 (blocks correctness), P2 (degrades maintainability), P3 (nice to have).",
+    "Present the audit report to the user. Get confirmation on which findings to action before writing any code.",
+    "Implement each fix as a single atomic commit with a conventional commit message. Never bundle unrelated fixes.",
+    "After each commit, run tsc --noEmit and the test suite. A refactor that breaks tests is not a refactor — it is a bug.",
+    "Update any affected JSDoc comments and inline TODOs after each fix.",
+    "Do not change component APIs or config file shapes during refactoring — those are breaking changes requiring a new ADR."
+  ],
+  "refactor_checklist": {
+    "duplication": [
+      "Are there repeated fetch patterns across route files that should be extracted to lib/content.ts?",
+      "Are className strings duplicated across components that should become shared CSS modules?",
+      "Are Zod schemas duplicated that should be composed via z.extend() or z.merge()?",
+      "Are metadata generation patterns duplicated across pages that should use lib/seo.ts helpers?"
+    ],
+    "architecture_drift": [
+      "Are any client components importing from lib/content.ts or lib/integrations.ts (server-only)?",
+      "Are any config values being read outside of their designated config/ files?",
+      "Are domain boundaries being violated — e.g. blog components importing portfolio types?",
+      "Are feature flag checks scattered across files instead of going through lib/features.ts?"
+    ],
+    "performance": [
+      "Are images using next/image with explicit width and height?",
+      "Are large client components that could be React Server Components?",
+      "Are fonts loaded via next/font/google (zero layout shift) rather than @import?",
+      "Are generateStaticParams implemented for all dynamic routes?",
+      "Are revalidate values set appropriately for ISR routes?"
+    ],
+    "accessibility": [
+      "Do all interactive elements have accessible labels (aria-label or visible text)?",
+      "Is the heading hierarchy correct on every page (single h1, logical h2/h3 nesting)?",
+      "Do all images have meaningful alt text (or alt='' for decorative images)?",
+      "Is focus management correct for the mobile nav open/close?",
+      "Does the theme toggle announce its state change to screen readers?"
+    ],
+    "type_safety": [
+      "Are there any `any` types that can be replaced with specific types or generics?",
+      "Are there non-null assertions (!) that should be replaced with proper null checks?",
+      "Are environment variables typed via a validated env schema (e.g. t3-env or manual Zod)?",
+      "Are MDX frontmatter fields validated at build time via the Zod schemas from lib/validators.ts?"
+    ],
+    "dead_code": [
+      "Are there unused imports (caught by ESLint no-unused-vars)?",
+      "Are there commented-out code blocks that should be deleted?",
+      "Are there TODO comments from phase 7 that have been implemented but not removed?",
+      "Are there unused CSS custom properties in tokens.css?"
+    ],
+    "security": [
+      "Are all external URLs validated before rendering as href or src?",
+      "Are API route inputs still validated with Zod (re-check after any route modification)?",
+      "Are Content Security Policy headers still correctly configured after adding any new third-party scripts?",
+      "Has npm audit been run — are there any new high/critical vulnerabilities?"
+    ]
+  },
+  "commit_message_format": {
+    "pattern": "<type>(<scope>): <description>",
+    "types": ["refactor", "perf", "fix", "style", "docs", "test"],
+    "examples": [
+      "refactor(content): extract getRecentPosts into lib/content.ts",
+      "perf(images): add explicit dimensions to all WorkCard cover images",
+      "refactor(types): replace any with WorkItem in WorkDetail props",
+      "fix(a11y): add aria-label to ThemeToggle button",
+      "refactor(security): centralise external URL validation in lib/validators.ts"
+    ]
+  },
+  "outputs": [
+    "Written audit report presented to user before any code changes",
+    "One atomic commit per finding actioned",
+    "Updated JSDoc comments on any modified functions",
+    "Clean tsc --noEmit and passing test suite after all commits"
+  ],
+  "guardrails": [
+    "Never change observable behaviour during a refactor. If behaviour must change, that is a feature — open a new issue.",
+    "Never bundle more than one logical change in a single commit.",
+    "Never refactor a file you do not have a test for — write the test first (see skill 09).",
+    "Never remove a TODO without either implementing it or opening a GitHub issue to track it.",
+    "If a refactor touches a config file shape, stop — that requires a new ADR and a migration guide."
+  ]
+}

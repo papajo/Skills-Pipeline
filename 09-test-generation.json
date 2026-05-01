@@ -1,0 +1,187 @@
+{
+  "skill": "test-generation",
+  "version": "1.0.0",
+  "project": "Universal Portfolio + Blog Template",
+  "phase": 9,
+  "title": "Test Generation",
+  "description": "Generate a comprehensive test suite for the universal portfolio + blog template. Covers unit tests (Vitest), component tests (React Testing Library), integration tests (API routes), and E2E tests (Playwright). Tests are persona-agnostic and validate both technical and non-technical usage paths.",
+  "trigger": "/generate-tests",
+  "prerequisite": "07-code-scaffolding complete. Run before 08-refactoring.",
+  "testing_stack": {
+    "unit_and_component": "Vitest + React Testing Library",
+    "e2e": "Playwright",
+    "coverage": "Vitest coverage via v8",
+    "mocking": "Vitest vi.mock() for external dependencies",
+    "fixtures": "Dedicated test fixtures in __tests__/fixtures/"
+  },
+  "test_strategy": "Red-Green-Refactor. Write the failing test first, then implement. Never write tests after the fact as box-ticking.",
+  "test_suites": [
+    {
+      "suite": "Config Validation Tests",
+      "file": "__tests__/unit/config.test.ts",
+      "description": "Validates that Zod schemas correctly accept valid configs and reject invalid ones. The most important test suite — a broken config breaks the whole template.",
+      "cases": [
+        "identity config with all required fields passes validation",
+        "identity config missing name field throws ZodError",
+        "theme config with valid colorScheme (light|dark|system) passes",
+        "theme config with invalid colorScheme throws ZodError",
+        "nav config with showBlog=false excludes blog routes from sitemap",
+        "integrations config with missing RESEND_API_KEY degrades gracefully"
+      ]
+    },
+    {
+      "suite": "Content Fetching Tests",
+      "file": "__tests__/unit/content.test.ts",
+      "description": "Unit tests for all lib/content.ts functions using fixture MDX files.",
+      "cases": [
+        "getAllPosts() returns posts sorted by publishedAt descending",
+        "getAllPosts() excludes draft posts",
+        "getPostBySlug('valid-slug') returns the correct post",
+        "getPostBySlug('nonexistent-slug') returns null",
+        "getAllWorkItems() excludes private visibility items",
+        "getFeaturedWorkItems() returns only items where featured=true",
+        "getRecentPosts(3) returns exactly 3 posts",
+        "computeReadingTime correctly estimates reading time for short and long posts"
+      ]
+    },
+    {
+      "suite": "Validator / Utility Tests",
+      "file": "__tests__/unit/validators.test.ts",
+      "cases": [
+        "slugify('Hello World') returns 'hello-world'",
+        "slugify handles special characters and unicode",
+        "formatDate returns locale-appropriate string",
+        "External URL validator accepts https:// URLs",
+        "External URL validator rejects javascript: URLs",
+        "External URL validator rejects http:// URLs (http only, not https)",
+        "Honeypot field validator rejects non-empty values"
+      ]
+    },
+    {
+      "suite": "SEO Library Tests",
+      "file": "__tests__/unit/seo.test.ts",
+      "cases": [
+        "getBaseMetadata() includes site name from identity config",
+        "getPostMetadata(post) sets title to post.title + site name",
+        "getPostMetadata(post) encodes post title correctly in OG image URL",
+        "getWorkItemMetadata(item) sets canonical URL correctly",
+        "Sitemap excludes disabled sections based on nav config flags",
+        "RSS feed includes only non-draft posts"
+      ]
+    },
+    {
+      "suite": "Contact API Route Tests",
+      "file": "__tests__/integration/api-contact.test.ts",
+      "description": "Integration tests for POST /api/contact. Mocks Resend client.",
+      "cases": [
+        "Valid submission returns 200 with ok:true",
+        "Missing name field returns 400 with field error",
+        "Invalid email format returns 400 with field error",
+        "Message under 10 characters returns 400",
+        "Filled honeypot field returns 400 silently",
+        "Exceeding rate limit returns 429",
+        "Resend API failure returns 500 without exposing error details",
+        "When RESEND_API_KEY is unset, route returns 200 with mailto fallback flag"
+      ]
+    },
+    {
+      "suite": "Component Tests",
+      "file": "__tests__/components/",
+      "cases": [
+        "WorkCard renders title, summary, and tags",
+        "WorkCard with visibility=private does not render",
+        "PostCard renders title, date, and reading time",
+        "PostCard with draft=true does not render in list",
+        "Nav hides blog link when showBlog=false in nav config",
+        "Nav hides work link when showWork=false in nav config",
+        "ThemeToggle toggles between light and dark class on document root",
+        "ResumeButton does not render when resumeUrl is null",
+        "ExternalLink always renders with rel=noopener noreferrer",
+        "MDXComponents does not render script tags (XSS prevention)"
+      ]
+    },
+    {
+      "suite": "E2E Tests — Core User Journeys",
+      "file": "e2e/",
+      "description": "Playwright tests covering the critical paths a visitor takes. Run against a local next dev or next build preview.",
+      "journeys": [
+        {
+          "journey": "Home page loads",
+          "file": "e2e/home.spec.ts",
+          "steps": ["Visit /", "Assert owner name is visible", "Assert featured work items render", "Assert recent posts render if showBlog=true"]
+        },
+        {
+          "journey": "Portfolio browsing",
+          "file": "e2e/work.spec.ts",
+          "steps": ["Visit /work", "Assert work grid renders", "Click first work card", "Assert detail page loads with correct title", "Assert external link has correct href and target=_blank"]
+        },
+        {
+          "journey": "Blog reading",
+          "file": "e2e/blog.spec.ts",
+          "steps": ["Visit /blog", "Assert post list renders", "Click first post", "Assert post body renders", "Assert code blocks are syntax highlighted", "Assert reading time is visible"]
+        },
+        {
+          "journey": "Contact form — happy path",
+          "file": "e2e/contact.spec.ts",
+          "steps": ["Visit /contact", "Fill name, email, message", "Submit form", "Assert success message appears", "Assert no error state"]
+        },
+        {
+          "journey": "Contact form — validation",
+          "file": "e2e/contact.spec.ts",
+          "steps": ["Visit /contact", "Submit empty form", "Assert field error messages appear", "Assert form is not submitted"]
+        },
+        {
+          "journey": "Feature flag — blog disabled",
+          "file": "e2e/feature-flags.spec.ts",
+          "steps": ["Set showBlog=false in nav config", "Assert /blog returns 404", "Assert blog link absent from nav", "Assert /rss.xml returns 404"]
+        },
+        {
+          "journey": "Theme toggle",
+          "file": "e2e/theme.spec.ts",
+          "steps": ["Load page in light mode", "Click theme toggle", "Assert dark class applied to html element", "Assert toggle aria-label updated", "Reload page", "Assert theme preference persisted"]
+        },
+        {
+          "journey": "SEO — OG image generation",
+          "file": "e2e/seo.spec.ts",
+          "steps": ["Request /og?title=Test+Post", "Assert response is image/png", "Assert status 200"]
+        },
+        {
+          "journey": "Accessibility — keyboard navigation",
+          "file": "e2e/a11y.spec.ts",
+          "steps": ["Load home page", "Tab through all interactive elements", "Assert focus is always visible", "Assert no keyboard traps"]
+        }
+      ]
+    }
+  ],
+  "fixtures": {
+    "location": "__tests__/fixtures/",
+    "files": [
+      "posts/valid-post.mdx       — A complete valid blog post for testing getAllPosts",
+      "posts/draft-post.mdx       — A draft post that must be excluded from all queries",
+      "work/valid-project.mdx     — A complete valid work item",
+      "work/private-project.mdx  — A private work item that must be excluded",
+      "configs/valid-identity.ts  — A minimal valid identity config",
+      "configs/minimal-nav.ts     — Nav config with all sections disabled"
+    ]
+  },
+  "coverage_targets": {
+    "lib/": "95%",
+    "app/api/": "90%",
+    "components/": "80%",
+    "config/": "100% (Zod validation must be exhaustive)"
+  },
+  "outputs": [
+    "__tests__/ directory with all unit and integration tests",
+    "e2e/ directory with all Playwright journey tests",
+    "__tests__/fixtures/ with all test data",
+    "Coverage report confirming targets are met",
+    "CI step added to .github/workflows/ci.yml running full suite on every PR"
+  ],
+  "guardrails": [
+    "Never write a test that always passes regardless of implementation — test behaviour, not existence.",
+    "Never mock the module under test — only mock its external dependencies (Resend, fs, env vars).",
+    "E2E tests must run against a real next build, not a mock — use playwright's webServer config.",
+    "Never skip the accessibility E2E tests — the template must be usable by keyboard and screen reader users.",
+    "Coverage targets are floors, not ceilings. Do not game coverage by testing trivial getters."
+  ]
+}
